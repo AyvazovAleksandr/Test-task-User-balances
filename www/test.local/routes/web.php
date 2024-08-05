@@ -15,5 +15,6 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 Route::get('/operations', [App\Http\Controllers\HomeController::class, 'getOperations'])->name('home');
+Route::get('/transactions', [App\Http\Controllers\HomeController::class, 'getTransactions'])->name('home');
 Route::get('/balance', [App\Http\Controllers\HomeController::class, 'getBalance'])->name('home');
 Auth::routes(['register' => false]);

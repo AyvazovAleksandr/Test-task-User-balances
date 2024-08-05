@@ -26,16 +26,6 @@ class HomeController extends Controller
      */
     public function index(Request $request)
     {
-//        $user = $request->user();
-//        $balance = $user->balance;
-//        $balanceAmount = $balance->amount_format;
-//
-//        $lastFiveOperations = $user->getLastFiveOperations();
-//
-//        return view('home', [
-//            'balance_format' => $balanceAmount,
-//            'last_five_operations' => $lastFiveOperations
-//        ]);
         return view('home');
     }
 
@@ -47,6 +37,16 @@ class HomeController extends Controller
             'operations' => $lastFiveOperations
         ]);
     }
+
+    public function getTransactions(Request $request)
+    {
+        $user = $request->user();
+        $lastFiveOperations = $user->operations;
+        return response()->json([
+            'operations' => $lastFiveOperations
+        ]);
+    }
+
 
     public function getBalance(Request $request)
     {
