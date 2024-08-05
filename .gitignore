@@ -1,0 +1,8 @@
+#ENV
+.env
+
+#IDE
+.idea/
+
+#ZIP
+*.zip

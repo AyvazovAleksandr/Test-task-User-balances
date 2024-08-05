@@ -1,0 +1,123 @@
+version: "3.7"
+
+networks:
+    test_local_net:
+        name: ${NETWORK_NAME}
+
+#Volumes
+volumes:
+    dbdata:
+        name: "${PROJECT_PREFIX}_dbdata"
+        driver: local
+
+# Workflow
+#
+services:
+    nginx:
+        build:
+            context: .
+            dockerfile: ./compose/nginx/Dockerfile
+        container_name: "${PROJECT_PREFIX}_nginx"
+        restart: always
+        ports:
+            - ${EXTERNAl_IP}:${EXTERNAl_PORT_NGINX}:80
+        volumes:
+            - ./www/test.local:/var/www/html:delegated
+            - ./logs/nginx:/var/log/nginx
+            - ./compose/nginx/nginx.conf:/etc/nginx/nginx.conf
+            - ./compose/nginx/default.conf:/etc/nginx/conf.d/default.conf
+            - ./compose/certbot/etc/letsencrypt:/etc/letsencrypt
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+        networks:
+            - test_local_net
+
+    adminer:
+        image: adminer
+        container_name: "${PROJECT_PREFIX}_adminer"
+        restart: always
+        depends_on:
+            - mysql
+        ports:
+            - "${EXTERNAl_IP}:${EXTERNAl_PORT_ADMINER}:8080"
+        links:
+            - mysql
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+        networks:
+            - test_local_net
+
+    mysql:
+        image: mysql:8.4.2
+        container_name: "${PROJECT_PREFIX}_mysql"
+        restart: unless-stopped
+        tty: true
+        expose:
+            - 3306
+        environment:
+            MYSQL_DATABASE: ${DB_DATABASE}
+            MYSQL_USER: ${DB_USERNAME}
+            MYSQL_PASSWORD: ${DB_PASSWORD}
+            MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+        volumes:
+            - dbdata:/var/lib/mysql/
+            - ./logs/mysql:/var/log/mysql
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+        networks:
+            - test_local_net
+
+    php:
+        build:
+            context: .
+            dockerfile: ./compose/php/Dockerfile
+        container_name: "${PROJECT_PREFIX}_php"
+        volumes:
+            - ./www/test.local:/var/www/html:delegated
+            - ./compose/php/config/php.ini:/usr/local/etc/php/php.ini
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+        expose:
+            - 9000
+            - 22
+        networks:
+            - test_local_net
+
+    supervisor:
+        build:
+            context: .
+            dockerfile: ./compose/supervisor/Dockerfile
+        container_name: "${PROJECT_PREFIX}_supervisor"
+        restart: always
+        volumes:
+            - ./www/test.local:/var/www/html:delegated
+            - ./compose/php/config/php.ini:/usr/local/etc/php/php.ini
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+        networks:
+            - test_local_net
+
+    redis:
+        image: "redis:alpine"
+        container_name: "${PROJECT_PREFIX}_redis"
+        restart: unless-stopped
+        expose:
+            - 6379
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+        networks:
+            - test_local_net
+
+    npm:
+        build:
+            context: .
+            dockerfile: ./compose/node/Dockerfile
+        container_name: "${PROJECT_PREFIX}_npm"
+        volumes:
+            - ./www/test.local:/app:delegated
+        working_dir: /app
+        entrypoint: ['npm']
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+        networks:
+            - test_local_net
