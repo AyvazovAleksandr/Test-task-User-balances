@@ -1,43 +1,66 @@
-### Пересобрать проект
+# Тестовое задание Балансы пользователей
+
+## Порядок запуска
+
+### Скопировать .env для Докера
+
 ```sh
-docker-compose -f docker-compose.local.yml up -d --no-deps --build nginx
+cp .env.example .env
 ```
 
-### Установить библиотеки из Composer
+### Скопировать .env для Laravel
 
 ```sh
-docker-compose -f docker-compose.local.yml run --rm composer install
+cd www/test.local/
+cp .env.example .env
 ```
 
-### Запустить любую команду artisan
+### Запустить проект
+
 ```sh
-docker-compose -f docker-compose.local.yml run --rm artisan <comands>
+docker-compose  up -d
 ```
 
-### Запустить команду composer
-```sh
-docker-compose -f docker-compose.local.yml run --rm composer <comands>
-```
+### Настроить проект
 
-### Зайти в контейнер PHP 
 ```sh
-docker-compose -f docker-compose.local.yml exec php bash
-
-```
-
-### Очистить кэш
-```sh
-php artisan  optimize:clear
-```
-
-### Запустить миграции
-```sh
+docker-compose exec php bash
+composer install
+php artisan key:generate
 php artisan migrate
+php artisan db:seed
 ```
 
-### Перезапустить supervisor
+### Запустить фронт проекта
+
 ```sh
-docker-compose -f docker-compose.local.yml restart supervisor
+cd www/test.local/
+npm install && npm run dev
 ```
 
+### Пользоваться проектом
 
+Перейти по ссылке http://localhost/
+
+## Команды проекта
+
+### Создание пользователя
+
+```sh
+docker-compose exec php bash
+php artisan app:add-user User user@mail.ru 123456
+```
+
+### Добавить средства
+
+```sh
+docker-compose exec php bash
+php artisan app:add-transaction user@mail.ru add 66.02 Add1
+```
+
+### Списать средства
+
+```sh
+docker-compose exec php bash
+php artisan app:add-transaction user@mail.ru subtract 10.02 Sub1
+```
